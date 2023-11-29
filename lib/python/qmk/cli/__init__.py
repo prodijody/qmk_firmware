@@ -145,12 +145,9 @@ def _broken_module_imports(requirements):
     broken_modules = _find_broken_requirements(requirements)
 
     for module in broken_modules:
-        print('Could not find module %s!' % module)
+        print(f'Could not find module {module}!')
 
-    if broken_modules:
-        return True
-
-    return False
+    return bool(broken_modules)
 
 
 # Make sure our python is new enough
@@ -226,7 +223,7 @@ for subcommand in subcommands:
     try:
         __import__(subcommand)
 
-    except (ImportError, ModuleNotFoundError) as e:
+    except ImportError as e:
         if safe_command:
             print(f'Warning: Could not import {subcommand}: {e.__class__.__name__}, {e}')
         else:

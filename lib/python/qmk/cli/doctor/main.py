@@ -39,22 +39,14 @@ def git_tests():
     """
     status = CheckStatus.OK
 
-    # Make sure our QMK home is a Git repo
-    git_ok = git_check_repo()
-    if not git_ok:
-        cli.log.warning("{fg_yellow}QMK home does not appear to be a Git repository! (no .git folder)")
-        status = CheckStatus.WARNING
-    else:
-        git_branch = git_get_branch()
-        if git_branch:
+    if git_ok := git_check_repo():
+        if git_branch := git_get_branch():
             cli.log.info('Git branch: %s', git_branch)
 
-            repo_version = git_get_tag()
-            if repo_version:
+            if repo_version := git_get_tag():
                 cli.log.info('Repo version: %s', repo_version)
 
-            git_dirty = git_is_dirty()
-            if git_dirty:
+            if git_dirty := git_is_dirty():
                 cli.log.warning('{fg_yellow}Git has unstashed/uncommitted changes.')
                 status = CheckStatus.WARNING
             git_remotes = git_get_remotes()
@@ -67,6 +59,9 @@ def git_tests():
                     cli.log.warning('{fg_yellow}The local "%s" branch contains commits not found in the upstream branch.', git_branch)
                     status = CheckStatus.WARNING
 
+    else:
+        cli.log.warning("{fg_yellow}QMK home does not appear to be a Git repository! (no .git folder)")
+        status = CheckStatus.WARNING
     return status
 
 

@@ -16,10 +16,7 @@ ignored_titles = ["Format code according to conventions"]
 
 
 def _is_ignored(title):
-    for ignore in ignored_titles:
-        if ignore in title:
-            return True
-    return False
+    return any(ignore in title for ignore in ignored_titles)
 
 
 def _get_pr_info(cache, gh, pr_num):
@@ -53,7 +50,7 @@ def _get_github():
 
 @cli.argument('-f', '--from-ref', default='0.11.0', help='Git revision/tag/reference/branch to begin search')
 @cli.argument('-b', '--branch', default='upstream/develop', help='Git branch to iterate (default: "upstream/develop")')
-@cli.subcommand('Creates the develop PR list.', hidden=False if cli.config.user.developer else True)
+@cli.subcommand('Creates the develop PR list.', hidden=not cli.config.user.developer)
 def generate_develop_pr_list(cli):
     """Retrieves information from GitHub regarding the list of PRs associated
     with a merge of `develop` branch into `master`.

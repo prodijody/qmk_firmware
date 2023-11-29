@@ -52,7 +52,7 @@ def rules_mk_assignment_only(keyboard_path):
                         continuation = line[:-1]
                         continue
 
-                    if line and '=' not in line:
+                    if '=' not in line:
                         errors.append(f'Non-assignment code on line +{i} {rules_mk}: {line}')
 
     return errors
@@ -103,9 +103,9 @@ def lint(cli):
             ok = False
             cli.log.error('%s: Warnings found when generating info.json (Strict mode enabled.)', kb)
 
-        # Check the rules.mk file(s)
-        rules_mk_assignment_errors = rules_mk_assignment_only(keyboard_path)
-        if rules_mk_assignment_errors:
+        if rules_mk_assignment_errors := rules_mk_assignment_only(
+            keyboard_path
+        ):
             ok = False
             cli.log.error('%s: Non-assignment code found in rules.mk. Move it to post_rules.mk instead.', kb)
             for assignment_error in rules_mk_assignment_errors:

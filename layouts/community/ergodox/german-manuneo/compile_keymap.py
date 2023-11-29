@@ -207,10 +207,6 @@ def parse_config(path):
                 start_section(i, line)
             elif line.startswith("    "):
                 amend_section(i, line[4:])
-            else:
-                # TODO: maybe parse description
-                pass
-
     end_section()
     assert 'layout' in config
     return config
@@ -296,9 +292,13 @@ def parse_valid_keys(config, out_path):
     subpaths = []
     while len(subpaths) < 6:
         path = os.path.join(basepath, *subpaths)
-        dirpaths.append(path)
-        dirpaths.append(os.path.join(path, "tmk_core", "common"))
-        dirpaths.append(os.path.join(path, "quantum"))
+        dirpaths.extend(
+            (
+                path,
+                os.path.join(path, "tmk_core", "common"),
+                os.path.join(path, "quantum"),
+            )
+        )
         subpaths.append('..')
 
     includes = set(config['keymaps_includes'])
@@ -318,14 +318,13 @@ def parse_valid_keys(config, out_path):
 #       Keymap Parsing
 
 def iter_raw_codes(layer_lines, filler, separator):
-    filler_re = re.compile("[" + filler + " ]")
+    filler_re = re.compile(f"[{filler} ]")
     for line in layer_lines:
         line, _ = filler_re.subn("", line.strip())
         if not line:
             continue
         codes = line.split(separator)
-        for code in codes[1:-1]:
-            yield code
+        yield from codes[1:-1]
 
 
 def iter_indexed_codes(raw_codes, key_indexes):
@@ -368,7 +367,7 @@ def parse_uni_code(raw_code):
         .replace(" ", "_")
         .replace("-", "_")
     )
-    code = "M({})".format(macro_id)
+    code = f"M({macro_id})"
     uc_hex = "{:04X}".format(ord(raw_code))
     return code, macro_id, uc_hex
 
@@ -417,9 +416,7 @@ def parse_keymap(config, key_indexes, layer_lines, valid_keycodes):
             raw_code, key_prefixes, valid_keycodes
         )
         # TODO: line numbers for invalid codes
-        err_msg = "Could not parse key '{}' on row {}".format(
-            raw_code, row_index
-        )
+        err_msg = f"Could not parse key '{raw_code}' on row {row_index}"
         assert code is not None, err_msg
         # print(repr(raw_code), repr(code), macro_id, uc_hex)
         if macro_id:
@@ -614,11 +611,11 @@ def iter_keymap_lines(keymap, row_indents=None):
             if row_indents:
                 for indent_col in range(row_indents[row_index]):
                     pad = " " * (col_widths[indent_col] - 4)
-                    yield (" /*-*/" + pad)
+                    yield f" /*-*/{pad}"
                 col = row_indents[row_index]
         else:
             yield pad
-        yield " {}".format(code)
+        yield f" {code}"
         if key_index < len(keymap) - 1:
             yield ","
             # This will be yielded on the next iteration when
@@ -631,13 +628,13 @@ def iter_keymap_lines(keymap, row_indents=None):
 def iter_keymap_parts(config, keymaps):
     # includes
     for include_path in config['keymaps_includes']:
-        yield '#include "{}"\n'.format(include_path)
+        yield f'#include "{include_path}"\n'
 
     yield "\n"
 
     # definitions
     for i, macro_id in enumerate(sorted(config['macro_ids'])):
-        yield "#define {} {}\n".format(macro_id, i)
+        yield f"#define {macro_id} {i}\n"
 
     yield "\n"
 
@@ -653,7 +650,7 @@ def iter_keymap_parts(config, keymaps):
         # comment
         layer_lines = config['layer_lines'][layer_name]
         prefixed_lines = " * " + " * ".join(layer_lines)
-        yield "/*\n{} */\n".format(prefixed_lines)
+        yield f"/*\n{prefixed_lines} */\n"
 
         # keymap codes
         keymap = keymaps[layer_name]
@@ -680,7 +677,7 @@ def main(argv=sys.argv[1:]):
 
     in_path = os.path.abspath(argv[0])
     if not os.path.exists(in_path):
-        print("No such file '{}'".format(in_path))
+        print(f"No such file '{in_path}'")
         return 1
 
     if len(argv) > 1:
