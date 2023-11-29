@@ -95,7 +95,7 @@ def filter_files(files, core_only=False):
 @cli.argument('-a', '--all-files', arg_only=True, action='store_true', help='Format all core files.')
 @cli.argument('--core-only', arg_only=True, action='store_true', help='Format core files only.')
 @cli.argument('files', nargs='*', arg_only=True, type=normpath, completer=FilesCompleter('.c'), help='Filename(s) to format.')
-@cli.subcommand("Format C code according to QMK's style.", hidden=False if cli.config.user.developer else True)
+@cli.subcommand("Format C code according to QMK's style.", hidden=not cli.config.user.developer)
 def format_c(cli):
     """Format C code according to QMK's style.
     """
@@ -132,7 +132,4 @@ def format_c(cli):
         return False
 
     # Run clang-format on the files we've found
-    if cli.args.dry_run:
-        return not find_diffs(files)
-    else:
-        return cformat_run(files)
+    return not find_diffs(files) if cli.args.dry_run else cformat_run(files)

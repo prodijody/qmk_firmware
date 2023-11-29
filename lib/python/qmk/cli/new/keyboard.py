@@ -162,7 +162,13 @@ As a starting point, one of the common layouts can be used to bootstrap the proc
 
 Default Layout? """
     # avoid overwhelming user - remove some?
-    filtered_layouts = [x for x in available_layouts if not any(xs in x for xs in ['_split', '_blocker', '_tsangan', '_f13'])]
+    filtered_layouts = [
+        x
+        for x in available_layouts
+        if all(
+            xs not in x for xs in ['_split', '_blocker', '_tsangan', '_f13']
+        )
+    ]
     filtered_layouts.append("none of the above")
 
     return choice(prompt, filtered_layouts, default=len(filtered_layouts) - 1)
@@ -176,7 +182,11 @@ https://docs.qmk.fm/#/compatible_microcontrollers
 
 MCU? """
     # remove any options strictly used for compatibility
-    filtered_mcu = [x for x in mcu_types if not any(xs in x for xs in ['cortex', 'unknown'])]
+    filtered_mcu = [
+        x
+        for x in mcu_types
+        if all(xs not in x for xs in ['cortex', 'unknown'])
+    ]
 
     return choice(prompt, filtered_mcu, default=filtered_mcu.index("atmega32u4"))
 

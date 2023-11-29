@@ -14,7 +14,7 @@ from qmk.keyboard import find_readme, list_keyboards
 
 
 @cli.argument('-n', '--dry-run', arg_only=True, action='store_true', help="Don't write the data to disk.")
-@cli.subcommand('Creates a new keymap for the keyboard of your choosing', hidden=False if cli.config.user.developer else True)
+@cli.subcommand('Creates a new keymap for the keyboard of your choosing', hidden=not cli.config.user.developer)
 def generate_api(cli):
     """Generates the QMK API data.
     """
@@ -41,8 +41,8 @@ def generate_api(cli):
         keyboard_readme_src = find_readme(keyboard_name)
 
         keyboard_dir.mkdir(parents=True, exist_ok=True)
-        keyboard_json = json.dumps({'last_updated': current_datetime(), 'keyboards': {keyboard_name: kb_all[keyboard_name]}})
         if not cli.args.dry_run:
+            keyboard_json = json.dumps({'last_updated': current_datetime(), 'keyboards': {keyboard_name: kb_all[keyboard_name]}})
             keyboard_info.write_text(keyboard_json)
             cli.log.debug('Wrote file %s', keyboard_info)
 
@@ -72,16 +72,16 @@ def generate_api(cli):
         'usb': usb_list,
     }
 
-    # Write the global JSON files
-    keyboard_all_json = json.dumps({'last_updated': current_datetime(), 'keyboards': kb_all}, cls=InfoJSONEncoder)
-    usb_json = json.dumps({'last_updated': current_datetime(), 'usb': usb_list}, cls=InfoJSONEncoder)
-    keyboard_list_json = json.dumps({'last_updated': current_datetime(), 'keyboards': keyboard_list}, cls=InfoJSONEncoder)
-    keyboard_aliases_json = json.dumps({'last_updated': current_datetime(), 'keyboard_aliases': keyboard_aliases}, cls=InfoJSONEncoder)
-    keyboard_metadata_json = json.dumps(keyboard_metadata, cls=InfoJSONEncoder)
-
     if not cli.args.dry_run:
+        # Write the global JSON files
+        keyboard_all_json = json.dumps({'last_updated': current_datetime(), 'keyboards': kb_all}, cls=InfoJSONEncoder)
         keyboard_all_file.write_text(keyboard_all_json)
+        usb_json = json.dumps({'last_updated': current_datetime(), 'usb': usb_list}, cls=InfoJSONEncoder)
         usb_file.write_text(usb_json)
+        keyboard_list_json = json.dumps({'last_updated': current_datetime(), 'keyboards': keyboard_list}, cls=InfoJSONEncoder)
         keyboard_list_file.write_text(keyboard_list_json)
+        keyboard_aliases_json = json.dumps({'last_updated': current_datetime(), 'keyboard_aliases': keyboard_aliases}, cls=InfoJSONEncoder)
         keyboard_aliases_file.write_text(keyboard_aliases_json)
+        keyboard_metadata_json = json.dumps(keyboard_metadata, cls=InfoJSONEncoder)
+
         keyboard_metadata_file.write_text(keyboard_metadata_json)
